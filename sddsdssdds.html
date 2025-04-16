@@ -155,14 +155,33 @@
 
     function generarResumen() {
       let resumen = "";
+      let zonaAnterior = "";  // Variable para almacenar la zona y evitar repeticiones
+
       productos.forEach((nombre, i) => {
         const cajas = parseInt(document.getElementById(`cajas-${i}`).value) || 0;
         const tipoCaja = parseInt(document.getElementById(`tipoCaja-${i}`).value) || 1;
         const sueltas = parseInt(document.getElementById(`sueltas-${i}`).value) || 0;
         const total = cajas * tipoCaja + sueltas;
+        let zona = "";  // Variable para almacenar la zona del producto
 
+        // Determinar a qué zona pertenece el producto
+        for (let z in zonas) {
+          if (zonas[z].includes(nombre)) {
+            zona = z;
+            break;
+          }
+        }
+
+        // Solo agregar productos con stock mayor que 0
         if (total > 0) {
-          resumen += `🔹 ${nombre}\n  Cajas: ${cajas} (x${tipoCaja})\n  Sueltas: ${sueltas}\n  Total: ${total}\n\n`;
+          // Si la zona cambia, agregarla como encabezado
+          if (zona !== zonaAnterior) {
+            resumen += `\n🗂️ ${zona}:\n`;
+            zonaAnterior = zona;
+          }
+
+          // Formato en una sola línea por producto
+          resumen += `  - ${nombre}: ${cajas} cajas (x${tipoCaja}), ${sueltas} sueltas, Total: ${total}\n`;
         }
       });
 
