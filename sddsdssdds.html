@@ -2,252 +2,201 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Inventario Lotus Flower</title>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <title>Inventario Rápido Bar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      font-family: Arial;
-      padding: 20px;
-      background: #f9f9f9;
+      font-family: sans-serif;
+      margin: 10px;
+      background: #f2f2f2;
+    }
+    h2 {
+      text-align: center;
+      color: #222;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 30px;
+      background: #fff;
     }
     th, td {
-      padding: 10px;
-      border: 1px solid #ccc;
-      text-align: left;
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: center;
+      font-size: 14px;
     }
     th {
-      background-color: #eee;
+      background-color: #2a9d8f;
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 1;
     }
-    input[type="number"], input[type="text"] {
-      width: 100%;
-      padding: 5px;
-      box-sizing: border-box;
+    .separador {
+      background-color: #264653;
+      color: #fff;
+      font-weight: bold;
+      text-align: left;
+      padding: 6px;
     }
-    select {
-      padding: 5px;
+    input, select {
       width: 100%;
+      padding: 4px;
+      font-size: 14px;
       box-sizing: border-box;
     }
     button {
-      padding: 10px 15px;
-      background: #25D366;
-      color: white;
+      padding: 12px;
+      width: 100%;
+      margin-top: 12px;
+      background-color: #2a9d8f;
       border: none;
-      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+      border-radius: 8px;
+      font-size: 16px;
       cursor: pointer;
-      margin-right: 10px;
-      margin-top: 10px;
     }
-    h3 {
-      margin-top: 40px;
-      background: #ddd;
+    button:hover {
+      background-color: #21867a;
+    }
+    #inventarioResumen {
+      white-space: pre-line;
+      background: #fff;
       padding: 10px;
-      border-radius: 5px;
-    }
-    .tabla-responsive {
-      overflow-x: auto;
-    }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 10px;
-      }
-      th, td {
-        padding: 5px;
-        font-size: 14px;
-      }
-      button {
-        width: 100%;
-        margin: 5px 0;
-      }
+      margin-top: 15px;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
 
-  <h2>Inventario Lotus Flower</h2>
+  <h2>Inventario Rápido del Bar</h2>
 
-  <label><strong>Responsable del Inventario:</strong></label><br>
-  <input type="text" id="responsable" placeholder="Nombre responsable" required><br><br>
+  <div style="overflow-x: auto;">
+    <table id="tablaProductos">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cajas</th>
+          <th>Tipo Caja</th>
+          <th>Sueltas</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="tablaBody">
+        <!-- JS insertará aquí -->
+      </tbody>
+    </table>
+  </div>
 
-  <form id="formularioInventario">
-    <div id="contenedorZonas"></div>
+  <button onclick="generarResumen()">📋 Generar Inventario</button>
+  <div id="inventarioResumen"></div>
+  <button onclick="enviarWhatsApp()">📲 Enviar por WhatsApp</button>
+  <button onclick="exportarExcel()">⬇️ Exportar a Excel</button>
 
-    <button type="button" onclick="enviarWhatsApp()">Enviar WhatsApp</button>
-    <button type="button" onclick="generarExcel()">Descargar Excel</button>
-  </form>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
-    const productos = [
-      { nombre: "Coca-Cola", zona: "Bebidas" },
-      { nombre: "Pepsi", zona: "Bebidas" },
-      { nombre: "Fanta", zona: "Bebidas" },
-      { nombre: "Pulpa de mango", zona: "Congelados" },
-      { nombre: "Pulpa de piña", zona: "Congelados" },
-      { nombre: "Jugo de naranja", zona: "Bebidas" },
-      { nombre: "Leche condensada", zona: "Lácteos" },
-      { nombre: "Yogurt natural", zona: "Lácteos" },
-      { nombre: "Mantequilla", zona: "Lácteos" }
-    ];
+    const zonas = {
+      "Bebidas": ["Coca Cola", "Fanta", "Sprite"],
+      "Abarrotes": ["Azúcar", "Sal"],
+      "Cervezas": ["Corona", "Heineken"],
+      "Artículos de Aseo": ["Cloro", "Detergente"],
+      "Pulpas de Jugos": ["Pulpa de Mango", "Pulpa de Piña"],
+      "Cabernet Sauvignon": ["Cabernet Sauvignon"],
+      "Carmenere": ["Carmenere"],
+      "Merlot": ["Merlot"],
+      "Sauvignon Blanc": ["Sauvignon Blanc"],
+      "Chardonnay": ["Chardonnay"],
+      "Espumante": ["Espumante Brut", "Espumante Dulce"],
+      "Destilados": ["Whisky", "Vodka", "Ron", "Gin"],
+      "Bajativos": ["Amaretto", "Baileys", "Fernet", "Licor de Menta"]
+    };
 
-    const tamanosCaja = [4, 6, 10, 24];
+    const tiposCaja = [1, 4, 6, 8, 12, 14, 15, 18, 24];
+    const productos = [];
 
-    function agruparPorZona(lista) {
-      const zonas = {};
-      lista.forEach(p => {
-        if (!zonas[p.zona]) zonas[p.zona] = [];
-        zonas[p.zona].push(p);
-      });
-      return zonas;
-    }
+    window.onload = () => {
+      const tbody = document.getElementById("tablaBody");
+      let index = 0;
 
-    function crearTablasPorZona() {
-      const contenedor = document.getElementById("contenedorZonas");
-      const zonasAgrupadas = agruparPorZona(productos);
-      contenedor.innerHTML = '';
+      for (let zona in zonas) {
+        const separador = document.createElement("tr");
+        separador.innerHTML = `<td class="separador" colspan="5">🗂️ ${zona}</td>`;
+        tbody.appendChild(separador);
 
-      for (const zona in zonasAgrupadas) {
-        const productosZona = zonasAgrupadas[zona];
-
-        const encabezado = document.createElement('h3');
-        encabezado.textContent = zona;
-        contenedor.appendChild(encabezado);
-
-        const tablaWrapper = document.createElement('div');
-        tablaWrapper.className = "tabla-responsive";
-
-        const tabla = document.createElement('table');
-        const thead = document.createElement('thead');
-        thead.innerHTML = `
-          <tr>
-            <th>Producto</th>
-            <th>Unidades</th>
-            <th>Cajas</th>
-            <th>Tamaño Caja</th>
-            <th>Total</th>
-          </tr>
-        `;
-        tabla.appendChild(thead);
-
-        const tbody = document.createElement('tbody');
-
-        productosZona.forEach(producto => {
-          const fila = document.createElement('tr');
-
-          fila.innerHTML = `
-            <td>${producto.nombre}</td>
-            <td><input type="number" id="${producto.nombre}-unidades" min="0" oninput="actualizarTotal('${producto.nombre}')"></td>
-            <td><input type="number" id="${producto.nombre}-cajas" min="0" oninput="actualizarTotal('${producto.nombre}')"></td>
+        zonas[zona].forEach(producto => {
+          productos.push(producto);
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${producto}</td>
+            <td><input type="number" id="cajas-${index}" value="0" min="0" onchange="actualizarTotal(${index})"></td>
             <td>
-              <select id="${producto.nombre}-tamCaja" onchange="actualizarTotal('${producto.nombre}')">
-                ${tamanosCaja.map(t => <option value="${t}">Caja de ${t}</option>).join('')}
+              <select id="tipoCaja-${index}" onchange="actualizarTotal(${index})">
+                ${tiposCaja.map(n => `<option value="${n}">${n === 1 ? "Sin caja" : "Caja de " + n}</option>`).join('')}
               </select>
             </td>
-            <td><input type="number" id="${producto.nombre}-total" readonly></td>
+            <td><input type="number" id="sueltas-${index}" value="0" min="0" onchange="actualizarTotal(${index})"></td>
+            <td><span id="total-${index}">0</span></td>
           `;
-
-          tbody.appendChild(fila);
+          tbody.appendChild(row);
+          index++;
         });
-
-        tabla.appendChild(tbody);
-        tablaWrapper.appendChild(tabla);
-        contenedor.appendChild(tablaWrapper);
       }
+    };
+
+    function actualizarTotal(i) {
+      const cajas = parseInt(document.getElementById(`cajas-${i}`).value) || 0;
+      const tipoCaja = parseInt(document.getElementById(`tipoCaja-${i}`).value) || 1;
+      const sueltas = parseInt(document.getElementById(`sueltas-${i}`).value) || 0;
+      const total = cajas * tipoCaja + sueltas;
+      document.getElementById(`total-${i}`).innerText = total;
     }
 
-    function actualizarTotal(nombre) {
-      const unidades = parseInt(document.getElementById(${nombre}-unidades).value) || 0;
-      const cajas = parseInt(document.getElementById(${nombre}-cajas).value) || 0;
-      const tamCaja = parseInt(document.getElementById(${nombre}-tamCaja).value) || 0;
-      const total = unidades + cajas * tamCaja;
-      document.getElementById(${nombre}-total).value = total;
-    }
+    function generarResumen() {
+      let resumen = "";
+      productos.forEach((nombre, i) => {
+        const cajas = parseInt(document.getElementById(`cajas-${i}`).value) || 0;
+        const tipoCaja = parseInt(document.getElementById(`tipoCaja-${i}`).value) || 1;
+        const sueltas = parseInt(document.getElementById(`sueltas-${i}`).value) || 0;
+        const total = cajas * tipoCaja + sueltas;
 
-    function obtenerFechaActual() {
-      const f = new Date();
-      return ${f.getFullYear()}-${(f.getMonth() + 1).toString().padStart(2, '0')}-${f.getDate().toString().padStart(2, '0')};
-    }
-
-    function obtenerDatos() {
-      const datos = [];
-      productos.forEach(p => {
-        const unidades = parseInt(document.getElementById(${p.nombre}-unidades).value) || 0;
-        const cajas = parseInt(document.getElementById(${p.nombre}-cajas).value) || 0;
-        const tamCaja = parseInt(document.getElementById(${p.nombre}-tamCaja).value) || 0;
-        const total = unidades + cajas * tamCaja;
-
-        if (unidades > 0 || cajas > 0) {
-          datos.push({
-            Zona: p.zona,
-            Producto: p.nombre,
-            "Unidades sueltas": unidades,
-            "Cajas": cajas,
-            "Tamaño caja": tamCaja,
-            "Total unidades": total
-          });
+        if (total > 0) {
+          resumen += `🔹 ${nombre}\n  Cajas: ${cajas} (x${tipoCaja})\n  Sueltas: ${sueltas}\n  Total: ${total}\n\n`;
         }
       });
-      return datos;
+
+      document.getElementById("inventarioResumen").innerText = resumen || "No hay productos con stock.";
     }
 
     function enviarWhatsApp() {
-      const responsable = document.getElementById("responsable").value || "No indicado";
-      const fecha = obtenerFechaActual();
-      const datos = obtenerDatos();
-
-      let mensaje = Inventario Lotus Flower\nFecha: ${fecha}\nResponsable: ${responsable}\n\n;
-
-      datos.forEach(d => {
-        mensaje += `• [${d.Zona}] ${d.Producto}: `;
-        if (d["Unidades sueltas"] > 0) mensaje += ${d["Unidades sueltas"]} unidades;
-        if (d["Cajas"] > 0) {
-          mensaje += (d["Unidades sueltas"] > 0 ? " + " : "");
-          mensaje += ${d["Cajas"]} cajas de ${d["Tamaño caja"]};
-        }
-        mensaje += ` = ${d["Total unidades"]} total\n`;
-      });
-
+      const mensaje = document.getElementById("inventarioResumen").innerText;
+      if (!mensaje.trim()) {
+        alert("Primero genera el inventario.");
+        return;
+      }
       const numero = "56920449772";
-      const url = https://wa.me/${numero}?text=${encodeURIComponent(mensaje)};
+      const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
       window.open(url, "_blank");
     }
 
-    function generarExcel() {
-      const responsable = document.getElementById("responsable").value || "No indicado";
-      const fecha = obtenerFechaActual();
-      const datos = obtenerDatos();
+    function exportarExcel() {
+      const datos = [["Producto", "Cajas", "Tipo Caja", "Sueltas", "Total"]];
+      productos.forEach((nombre, i) => {
+        const cajas = parseInt(document.getElementById(`cajas-${i}`).value) || 0;
+        const tipoCaja = parseInt(document.getElementById(`tipoCaja-${i}`).value) || 1;
+        const sueltas = parseInt(document.getElementById(`sueltas-${i}`).value) || 0;
+        const total = cajas * tipoCaja + sueltas;
+        if (total > 0) {
+          datos.push([nombre, cajas, tipoCaja, sueltas, total]);
+        }
+      });
 
-      const cabecera = [
-        ["Inventario Lotus Flower"],
-        [Fecha: ${fecha}],
-        [Responsable: ${responsable}],
-        [],
-        ["Zona", "Producto", "Unidades sueltas", "Cajas", "Tamaño caja", "Total unidades"]
-      ];
-
-      const datosExcel = cabecera.concat(datos.map(d => [
-        d.Zona,
-        d.Producto,
-        d["Unidades sueltas"],
-        d["Cajas"],
-        d["Tamaño caja"],
-        d["Total unidades"]
-      ]));
-
-      const hoja = XLSX.utils.aoa_to_sheet(datosExcel);
-      const libro = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(libro, hoja, "Inventario");
-
-      const nombreArchivo = inventario_LotusFlower_${fecha}_${responsable.replace(/\s+/g, "_")}.xlsx;
-      XLSX.writeFile(libro, nombreArchivo);
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(datos);
+      XLSX.utils.book_append_sheet(wb, ws, "Inventario");
+      XLSX.writeFile(wb, "inventario_bar.xlsx");
     }
-
-    window.onload = crearTablasPorZona;
   </script>
 
 </body>
