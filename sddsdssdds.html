@@ -73,6 +73,16 @@
 
   <h2>Inventario Rápido del Bar</h2>
 
+  <!-- Nombre del responsable y fecha -->
+  <div>
+    <label for="responsable">Responsable:</label>
+    <input type="text" id="responsable" placeholder="Nombre del responsable">
+  </div>
+  <div>
+    <label for="fecha">Fecha:</label>
+    <input type="date" id="fecha" value="" />
+  </div>
+
   <div style="overflow-x: auto;">
     <table id="tablaProductos">
       <thead>
@@ -120,6 +130,10 @@
       const tbody = document.getElementById("tablaBody");
       let index = 0;
 
+      // Establecer la fecha predeterminada (fecha actual)
+      const fechaActual = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+      document.getElementById("fecha").value = fechaActual;
+
       for (let zona in zonas) {
         const separador = document.createElement("tr");
         separador.innerHTML = `<td class="separador" colspan="5">🗂️ ${zona}</td>`;
@@ -156,6 +170,10 @@
     function generarResumen() {
       let resumen = "";
       let zonaAnterior = "";  // Variable para almacenar la zona y evitar repeticiones
+
+      const responsable = document.getElementById("responsable").value || "Sin asignar";
+      const fecha = document.getElementById("fecha").value || "Fecha no establecida";
+      resumen += `Responsable: ${responsable}\nFecha: ${fecha}\n\n`;
 
       productos.forEach((nombre, i) => {
         const cajas = parseInt(document.getElementById(`cajas-${i}`).value) || 0;
