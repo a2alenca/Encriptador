@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Inventario Lotus Flower</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 10px;
+      background: #f2f2f2;
+    }
+    h2 {
+      text-align: center;
+      color: #222;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: center;
+      font-size: 14px;
+    }
+    th {
+      background-color: #2a9d8f;
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .separador {
+      background-color: #264653;
+      color: #fff;
+      font-weight: bold;
+      text-align: left;
+      padding: 6px;
+    }
+    input, select {
+      width: 100%;
+      padding: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 12px;
+      width: 100%;
+      margin-top: 12px;
+      background-color: #2a9d8f;
+      border: none;
+      color: white;
+      font-weight: bold;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #21867a;
+    }
+    #inventarioResumen {
+      white-space: pre-line;
+      background: #fff;
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Inventario Lotus Flower</h2>
+
+  <div>
+    <label for="responsable">Responsable:</label>
+    <input type="text" id="responsable" placeholder="Nombre del responsable">
+  </div>
+  <div>
+    <label for="fecha">Fecha:</label>
+    <input type="date" id="fecha" value="" />
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table id="tablaProductos">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cajas</th>
+          <th>Tipo Caja</th>
+          <th>Sueltas</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="tablaBody">
+        <!-- JS insertará aquí -->
+      </tbody>
+    </table>
+  </div>
+
+  <button onclick="generarResumen()">📋 Generar Inventario</button>
+  <div id="inventarioResumen"></div>
+  <button onclick="enviarWhatsApp()">📲 Enviar por WhatsApp</button>
+  <button onclick="exportarExcel()">⬇️ Exportar a Excel</button>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    
+
+const zonas = {
+  "Bebidas": [
+    "BILZ", "COCA COLA", "COCA ZERO", "FANTA", "GINGER ALE", "GINGER LIGHT", "KEM PIÑA",
+    "LIMON SODA", "MINERAL CON GAS", "MINERAL SIN GAS", "SPRITE", "SPRITE ZERO", "TONICA"
+  ],
+  "Cervezas": [
+    "AUSTRAL CALAFATE", "AUSTRAL LAGER", "AUSTRAL PALE ALE", "CORONA", "GINGER BEER",
+    "HEINEKEN", "HEINEKEN CERO", "KROSS", "ROYAL", "TOROBAYO"
+  ],
+  "Pulpa Jugos": [
+    "CHIRIMOYA", "FRAMBUESA", "MANGO", "MARACUYA", "PIÑA"
+  ],
+  "Abarrotes": [
+    "AZUCAR BLANCA", "AZUCAR ESTEVIA", "AZUCAR FLOR", "AZUCAR SACKET", "CAPSULAS NESPRESSO",
+    "CREMA DE LECHE", "ENDULZANTE LIQUIDO", "LECHE DE COCO", "NESCAFE SACKET", "TE"
+  ],
+  "Artículos de Aseo": [
+    "BOLSA DE BASURA 70X90", "CAJA DE GUANTES", "CLORO", "ESCOBA", "ESPONJA", "JABON MANO",
+    "LAVALOZA", "LIMPIA PISO", "LIMPIA VIDRIO", "PALA", "PAÑO MICROFIBRA", "TOALLA NOVA", "TRAPEROS"
+  ],
+  "Cabernet Sauvignon": [
+    "Cabernet Sauvignon LAS MULAS 750ML", "Cabernet Sauvignon MEDALLA REAL 750ML",
+    "Cabernet Sauvignon SANTA DIGNA 375ML", "Cabernet Sauvignon SANTA DIGNA 750ML",
+    "Cabernet Sauvignon SANTA DIGNA BOTELLIN 187ML", "Cabernet Sauvignon SANTA EMA RSVA 375ML",
+    "Cabernet Sauvignon VINO TERRAANDINA 750ML"
+  ],
+  "Carmenere": [
+    "Carmenere CARMEN FRIDA KAHLO", "Carmenere LAS MULAS 750ML", "Carmenere SANTA DIGNA 375ML",
+    "Carmenere SANTA DIGNA 750ML", "Carmenere SANTA DIGNA BOTELLIN 187ML",
+    "Carmenere SANTA EMA RSVA 375ML"
+  ],
+  "Merlot": [
+    "Merlot LAS MULAS 750ML", "Merlot MEDALLA REAL GRAN RSVA",
+    "Merlot SANTA EMA RSVA 750ML", "Merlot SANTA DIGNA 750ML"
+  ],
+  "Sauvignon Blanc": [
+    "Sauvignon Blanc LAS MULAS 750ML", "Sauvignon Blanc SANTA DIGNA 375ML",
+    "Sauvignon Blanc SANTA DIGNA 750ML", "Sauvignon Blanc SANTA DIGNA BOTELLIN 187ML",
+    "Sauvignon Blanc SANTA EMA RSVA 375ML"
+  ],
+  "Chardonnay": [
+    "Chardonnay LAS MULAS 750ML", "Chardonnay SANTA DIGNA 750ML", "Chardonnay SANTA EMA RSVA 750ML"
+  ],
+  "Espumantes": [
+    "Espumantes ESPUMANTE PARA TRAGOS", "Espumantes VALDIVIESO BRUT", "Espumantes VALDIVIESO SEMI BRUT"
+  ],
+  "Bajativos": [
+    "b AMARETTO MITJANS 750ML",
+    "b BITTER ARAUCANO 900ML",
+    "b FERNET MITJANS 750ML",
+    "b MANZANILLA MITJANS 750ML",
+    "b MENTA DUVAL 1LT"
+  ],
+  "Bajativos Casa": [
+    "b.c AMARETTO 645ML",
+    "b.c CHERRY 645ML",
+    "b.c FERNET 645ML",
+    "b.c MANZANILLA 645ML",
+    "b.c MENTA 645ML",
+    "b.c MENTA DUVAL 1LT"
+  ],
+  "Destilados": [
+    "APEROL 750ML", "CACAO MITJNS 750ML", "CACHAZA 51 965ML", "CAMPARI 750ML",
+    "COÑAC TRES PALOS 1LTS", "CURAZAO BLUE 750ML", "GIN BEEFEATER 750ML", "GIN BOMBAY 750ML",
+    "GIN TANQUERY 700ML", "JAGERMEISTER 700ML", "MARTINI VERMONT EXTRA DRY",
+    "MARTINI VERMONT ROSSO", "MARTINI VERMOUTH BLANCO", "PISCO ALTO DEL CARMEN 35°",
+    "PISCO ALTO DEL CARMEN 40°", "PISCO CAPEL 35° 1LT", "PISCO MISTRAL NOBEL AÑEJADO 40",
+    "PISCO TABERNERO 2LTS", "RAMAZZOTTI 700ML", "RON BACARDI", "RON MALIBU 750ML",
+    "RON VARADERO 750ML", "TEQUILA OLMECA 700ML", "TEQUILA SOMBRERO NEGRO 750ML",
+    "TRIPLE SEC 750ML", "VINO AÑEJO CENTENARIO 1LTS", "VODKA ABSOLUT 750ML",
+    "VODKA ERISTOFF 750ML", "VODKA STOLICHNAYA 750ML", "WHISKY CHIVAS 12 AÑOS",
+    "WHISKY GLENFIDDICH 12 AÑOS", "WHISKY JACK DANIELS", "WHISKY JACK DANIELS HONEY",
+    "WHISKY JOHNNIE WALKER NEGRO", "WHISKY JOHNNIE WALKER ROJO", "WHISKY TULLAMORE 750ML"
+  ]
+};
+
+
+
+
+
+
+.
+
+    const tiposCaja = [1, 4, 6, 8, 12, 14, 15, 18, 24];
+    const productos = [];
+
+    window.onload = () => {
+      const tbody = document.getElementById("tablaBody");
+      let index = 0;
+      const fechaActual = new Date().toISOString().split('T')[0];
+      document.getElementById("fecha").value = fechaActual;
+
+      for (let zona in zonas) {
+        const separador = document.createElement("tr");
+        separador.innerHTML = `<td class="separador" colspan="5">🗂️ ${zona}</td>`;
+        tbody.appendChild(separador);
+
+        zonas[zona].forEach(producto => {
+          productos.push(producto);
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${producto}</td>
+            <td><input type="number" id="cajas-${index}" value="" min="0" onchange="actualizarTotal(${index})"></td>
+            <td>
+              <select id="tipoCaja-${index}" onchange="actualizarTotal(${index})">
+                ${tiposCaja.map(n => `<option value="${n}">${n === 1 ? "Sin caja" : "Caja de " + n}</option>`).join('')}
+              </select>
+            </td>
+            <td><input type="number" id="sueltas-${index}" value="" min="0" onchange="actualizarTotal(${index})"></td>
+            <td><span id="total-${index}"></span></td>
+          `;
+          tbody.appendChild(row);
+          index++;
+        });
+      }
+    };
+
+    function actualizarTotal(i) {
+      const cajas = parseInt(document.getElementById(`cajas-${i}`).value) || 0;
+      const tipoCaja = parseInt(document.getElementById(`tipoCaja-${i}`).value) || 1;
+      const sueltas = parseInt(document.getElementById(`sueltas-${i}`).value) || 0;
+      const total = cajas * tipoCaja + sueltas;
+      document.getElementById(`total-${i}`).innerText = total > 0 ? total : "";
+    }
+
+    function generarResumen() {
+      let resumen = "";
+      let zonaAnterior = "";
+      const responsable = document.getElementById("responsable").value || "Sin asignar";
+      const fecha = document.getElementById("fecha").value || "Fecha no establecida";
+      resumen += `Responsable: ${responsable}\nFecha: ${fecha}\n\n`;
+
+      productos.forEach((nombre, i) => {
+        const cajas = parseInt(document.getElementById(`cajas-${i}`).value) || 0;
+        const tipoCaja = parseInt(document.getElementById(`tipoCaja-${i}`).value) || 1;
+        const sueltas = parseInt(document.getElementById(`sueltas-${i}`).value) || 0;
+        const total = cajas * tipoCaja + sueltas;
+        let zona = "";
+
+        for (let z in zonas) {
+          if (zonas[z].includes(nombre)) {
+            zona = z;
+            break;
+          }
+        }
+
+        if (total > 0) {
+          if (zona !== zonaAnterior) {
+            resumen += `\n🗂️ ${zona}:\n`;
+            zonaAnterior = zona;
+          }
+          resumen += `  - ${nombre}: ${cajas} cajas (x${tipoCaja}), ${sueltas} sueltas, Total: ${total}\n`;
+        }
+      });
+
+      document.getElementById("inventarioResumen").innerText = resumen || "No hay productos con stock.";
+    }
+
+    function enviarWhatsApp() {
+      const mensaje = document.getElementById("inventarioResumen").innerText;
+      if (!mensaje.trim()) {
+        alert("Primero genera el inventario.");
+        return;
+      }
+      const numero = "56920449772";
+      const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+      window.open(url, "_blank");
+    }
+
+    function exportarExcel() {
+      const datos = [["Producto", "Cajas", "Tipo Caja", "Sueltas", "Total"]];
+      productos.forEach((nombre, i) => {
+        const cajas = parseInt(document.getElementById(`cajas-${i}`).value) || 0;
+        const tipoCaja = parseInt(document.getElementById(`tipoCaja-${i}`).value) || 1;
+        const sueltas = parseInt(document.getElementById(`sueltas-${i}`).value) || 0;
+        const total = cajas * tipoCaja + sueltas;
+        if (total > 0) {
+          datos.push([nombre, cajas, tipoCaja, sueltas, total]);
+        }
+      });
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(datos);
+      XLSX.utils.book_append_sheet(wb, ws, "Inventario");
+      XLSX.writeFile(wb, "inventario_bar.xlsx");
+    }
+  </script>
+
+</body>
+</html>
