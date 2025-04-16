@@ -45,6 +45,9 @@
       font-size: 14px;
       box-sizing: border-box;
     }
+    select {
+      max-width: 100px;
+    }
     button {
       padding: 12px;
       width: 100%;
@@ -145,7 +148,7 @@
             <td><input type="number" id="cajas-${index}" value="" min="0" onchange="actualizarTotal(${index})"></td>
             <td>
               <select id="tipoCaja-${index}" onchange="actualizarTotal(${index})">
-                ${tiposCaja.map(n => `<option value="${n}">${n === 1 ? "Sin caja" : "Caja de " + n}</option>`).join('')}
+                ${tiposCaja.map(n => `<option value="${n}">${n === 1 ? "Sin caja" : "x " + n}</option>`).join('')}
               </select>
             </td>
             <td><input type="number" id="sueltas-${index}" value="" min="0" onchange="actualizarTotal(${index})"></td>
