@@ -5,12 +5,34 @@
   <title>Inventario Lotus Flower</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
-    body { font-family: Arial; padding: 20px; background: #f9f9f9; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-    th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
-    th { background-color: #eee; }
-    input[type="number"], input[type="text"], input[type="date"] { width: 100%; padding: 5px; }
-    select { padding: 5px; width: 100%; }
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    th {
+      background-color: #eee;
+    }
+    input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 5px;
+      box-sizing: border-box;
+    }
+    select {
+      padding: 5px;
+      width: 100%;
+      box-sizing: border-box;
+    }
     button {
       padding: 10px 15px;
       background: #25D366;
@@ -21,7 +43,29 @@
       margin-right: 10px;
       margin-top: 10px;
     }
-    h3 { margin-top: 40px; background: #ddd; padding: 10px; border-radius: 5px; }
+    h3 {
+      margin-top: 40px;
+      background: #ddd;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .tabla-responsive {
+      overflow-x: auto;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      th, td {
+        padding: 5px;
+        font-size: 14px;
+      }
+      button {
+        width: 100%;
+        margin: 5px 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -31,9 +75,6 @@
   <label><strong>Responsable del Inventario:</strong></label><br>
   <input type="text" id="responsable" placeholder="Nombre responsable" required><br><br>
 
-  <label><strong>Fecha del Inventario:</strong></label><br>
-  <input type="date" id="fecha" required><br><br>
-
   <form id="formularioInventario">
     <div id="contenedorZonas"></div>
 
@@ -42,147 +83,171 @@
   </form>
 
   <script>
-    const zonas = {
-      "1. Abarrotes": [
-        "AZUCAR BLANCA", "AZUCAR ESTEVIA", "AZUCAR FLOR", "AZUCAR SACKET", "CAPSULAS NESPRESSO", "CREMA DE LECHE", "ENDULZANTE LIQUIDO", "LECHE DE COCO", "NESCAFE SACKET", "TE"
-      ],
-      "2. Artículos de Aseo": [
-        "BOLSA DE BASURA 70X90", "CAJA DE GUANTES", "CLORO", "ESCOBA", "ESPONJA", "JABON MANO", "LAVALOZA", "LIMPIA PISO", "LIMPIA VIDRIO", "PALA", "PAÑO MICROFIBRA", "TOALLA NOVA", "TRAPEROS"
-      ],
-      "3. Bajativos": [
-        "AMARETTO 645ML", "AMARETTO MITJANS 750ML", "BITTER ARAUCANO 900ML", "CHERRY 645ML", "FERNET 645ML", "FERNET MITJANS 750ML", "MANZANILLA 645ML", "MANZANILLA MITJANS 750ML", "MENTA 645ML", "MENTA DUVAL 1LT"
-      ],
-      "4. Bebidas": [
-        "BILZ", "COCA COLA", "COCA ZERO", "FANTA", "GINGER ALE", "GINGER LIGHT", "KEM PIÑA", "LIMON SODA", "MINERAL CON GAS", "MINERAL SIN GAS", "SPRITE", "SPRITE ZERO", "TONICA"
-      ],
-      "5. Cervezas": [
-        "AUSTRAL CALAFATE", "AUSTRAL LAGER", "AUSTRAL PALE ALE", "CORONA", "GINGER BEER", "HEINEKEN", "HEINEKEN CERO", "KROSS", "ROYAL", "TOROBAYO"
-      ],
-      "6. Destilados": [
-        "APEROL 750ML", "CACAO MITJNS 750ML", "CACHAZA 51 965ML", "CAMPARI 750ML", "COÑAC TRES PALOS 1LTS", "CURAZAO BLUE 750ML", "GIN BEEFEATER 750ML", "GIN BOMBAY 750ML", "GIN TANQUERY 700ML", "JAGERMEISTER 700ML",
-        "MARTINI VERMONT EXTRA DRY", "MARTINI VERMONT ROSSO", "MARTINI VERMOUTH BLANCO", "PISCO ALTO DEL CARMEN 35°", "PISCO ALTO DEL CARMEN 40°", "PISCO CAPEL 35° 1LT", "PISCO MISTRAL NOBEL AÑEJADO 40", "PISCO TABERNERO 2LTS",
-        "RAMAZZOTTI 700ML", "RON BACARDI", "RON MALIBU 750ML", "RON VARADERO 750ML", "TEQUILA OLMECA 700ML", "TEQUILA SOMBRERO NEGRO 750ML", "TRIPLE SEC 750ML", "VINO AÑEJO CENTENARIO 1LTS", "VODKA ABSOLUT 750ML",
-        "VODKA ERISTOFF 750ML", "VODKA STOLICHNAYA 750ML", "WHISKY CHIVAS 12 AÑOS", "WHISKY GLENFIDDICH 12 AÑOS", "WHISKY JACK DANIELS", "WHISKY JACK DANIELS HONEY", "WHISKY JOHNNIE WALKER NEGRO", "WHISKY JOHNNIE WALKER ROJO", "WHISKY TULLAMORE 750ML"
-      ],
-      "7. Espumantes": ["ESPUMANTE PARA TRAGOS", "VALDIVIESO BRUT", "VALDIVIESO SEMI BRUT"],
-      "8. Pulpa Jugos": ["CHIRIMOYA", "FRAMBUESA", "MANGO", "MARACUYA", "PIÑA"],
-      "9. Vino - Cabernet Sauvignon": [
-        "LAS MULAS 750ML", "MEDALLA REAL 750ML", "SANTA DIGNA 375ML", "SANTA DIGNA 750ML", "SANTA DIGNA BOTELLIN 187ML", "SANTA EMA RSVA 375ML", "VINO TERRAANDINA 750ML"
-      ],
-      "10. Vino - Carmenere": [
-        "CARMEN FRIDA KAHLO", "LAS MULAS 750ML", "SANTA DIGNA 375ML", "SANTA DIGNA 750ML", "SANTA DIGNA BOTELLIN 187ML", "SANTA EMA RSVA 375ML"
-      ],
-      "11. Vino - Chardonnay": ["LAS MULAS 750ML", "SANTA DIGNA 750ML", "SANTA EMA RSVA 750ML"],
-      "12. Vino - Merlot": ["LAS MULAS 750ML", "MEDALLA REAL GRAN RSVA", "SANTA EMA RSVA 750ML", "SANTA DIGNA 750ML"],
-      "13. Vino - Sauvignon Blanc": ["LAS MULAS 750ML", "SANTA DIGNA 375ML", "SANTA DIGNA 750ML", "SANTA DIGNA BOTELLIN 187ML", "SANTA EMA RSVA 375ML"]
-    };
+    const productos = [
+      { nombre: "Coca-Cola", zona: "Bebidas" },
+      { nombre: "Pepsi", zona: "Bebidas" },
+      { nombre: "Fanta", zona: "Bebidas" },
+      { nombre: "Pulpa de mango", zona: "Congelados" },
+      { nombre: "Pulpa de piña", zona: "Congelados" },
+      { nombre: "Jugo de naranja", zona: "Bebidas" },
+      { nombre: "Leche condensada", zona: "Lácteos" },
+      { nombre: "Yogurt natural", zona: "Lácteos" },
+      { nombre: "Mantequilla", zona: "Lácteos" }
+    ];
 
-    function crearTabla(zona, productos) {
-      const contenedor = document.getElementById("contenedorZonas");
+    const tamanosCaja = [4, 6, 10, 24];
 
-      const encabezado = document.createElement("h3");
-      encabezado.textContent = zona;
-      contenedor.appendChild(encabezado);
-
-      const tabla = document.createElement("table");
-      const thead = document.createElement("thead");
-      thead.innerHTML = `
-        <tr>
-          <th>Producto</th>
-          <th>Unidades por caja</th>
-          <th>Unidades sueltas</th>
-          <th>Total unidades</th>
-        </tr>
-      `;
-      tabla.appendChild(thead);
-
-      const tbody = document.createElement("tbody");
-      productos.forEach(producto => {
-        const fila = document.createElement("tr");
-        fila.innerHTML = `
-          <td>${producto}</td>
-          <td><input type="number" class="cajas" min="0" data-producto="${producto}" value="0"></td>
-          <td><input type="number" class="sueltas" min="0" data-producto="${producto}" value="0"></td>
-          <td><input type="number" class="total" readonly></td>
-        `;
-        tbody.appendChild(fila);
+    function agruparPorZona(lista) {
+      const zonas = {};
+      lista.forEach(p => {
+        if (!zonas[p.zona]) zonas[p.zona] = [];
+        zonas[p.zona].push(p);
       });
-      tabla.appendChild(tbody);
-      contenedor.appendChild(tabla);
+      return zonas;
     }
 
-    function actualizarTotales() {
-      document.querySelectorAll("tr").forEach(fila => {
-        const cajas = fila.querySelector(".cajas");
-        const sueltas = fila.querySelector(".sueltas");
-        const total = fila.querySelector(".total");
+    function crearTablasPorZona() {
+      const contenedor = document.getElementById("contenedorZonas");
+      const zonasAgrupadas = agruparPorZona(productos);
+      contenedor.innerHTML = '';
 
-        if (cajas && sueltas && total) {
-          const suma = parseInt(cajas.value || 0) + parseInt(sueltas.value || 0);
-          total.value = suma;
-        }
-      });
+      for (const zona in zonasAgrupadas) {
+        const productosZona = zonasAgrupadas[zona];
+
+        const encabezado = document.createElement('h3');
+        encabezado.textContent = zona;
+        contenedor.appendChild(encabezado);
+
+        const tablaWrapper = document.createElement('div');
+        tablaWrapper.className = "tabla-responsive";
+
+        const tabla = document.createElement('table');
+        const thead = document.createElement('thead');
+        thead.innerHTML = `
+          <tr>
+            <th>Producto</th>
+            <th>Unidades</th>
+            <th>Cajas</th>
+            <th>Tamaño Caja</th>
+            <th>Total</th>
+          </tr>
+        `;
+        tabla.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+
+        productosZona.forEach(producto => {
+          const fila = document.createElement('tr');
+
+          fila.innerHTML = `
+            <td>${producto.nombre}</td>
+            <td><input type="number" id="${producto.nombre}-unidades" min="0" oninput="actualizarTotal('${producto.nombre}')"></td>
+            <td><input type="number" id="${producto.nombre}-cajas" min="0" oninput="actualizarTotal('${producto.nombre}')"></td>
+            <td>
+              <select id="${producto.nombre}-tamCaja" onchange="actualizarTotal('${producto.nombre}')">
+                ${tamanosCaja.map(t => <option value="${t}">Caja de ${t}</option>).join('')}
+              </select>
+            </td>
+            <td><input type="number" id="${producto.nombre}-total" readonly></td>
+          `;
+
+          tbody.appendChild(fila);
+        });
+
+        tabla.appendChild(tbody);
+        tablaWrapper.appendChild(tabla);
+        contenedor.appendChild(tablaWrapper);
+      }
+    }
+
+    function actualizarTotal(nombre) {
+      const unidades = parseInt(document.getElementById(${nombre}-unidades).value) || 0;
+      const cajas = parseInt(document.getElementById(${nombre}-cajas).value) || 0;
+      const tamCaja = parseInt(document.getElementById(${nombre}-tamCaja).value) || 0;
+      const total = unidades + cajas * tamCaja;
+      document.getElementById(${nombre}-total).value = total;
+    }
+
+    function obtenerFechaActual() {
+      const f = new Date();
+      return ${f.getFullYear()}-${(f.getMonth() + 1).toString().padStart(2, '0')}-${f.getDate().toString().padStart(2, '0')};
     }
 
     function obtenerDatos() {
       const datos = [];
-      document.querySelectorAll("tbody tr").forEach(fila => {
-        const producto = fila.children[0].textContent;
-        const cajas = fila.querySelector(".cajas").value;
-        const sueltas = fila.querySelector(".sueltas").value;
-        const total = fila.querySelector(".total").value;
-        datos.push({
-          Producto: producto,
-          "Unidades por caja": cajas,
-          "Unidades sueltas": sueltas,
-          "Total unidades": total
-        });
+      productos.forEach(p => {
+        const unidades = parseInt(document.getElementById(${p.nombre}-unidades).value) || 0;
+        const cajas = parseInt(document.getElementById(${p.nombre}-cajas).value) || 0;
+        const tamCaja = parseInt(document.getElementById(${p.nombre}-tamCaja).value) || 0;
+        const total = unidades + cajas * tamCaja;
+
+        if (unidades > 0 || cajas > 0) {
+          datos.push({
+            Zona: p.zona,
+            Producto: p.nombre,
+            "Unidades sueltas": unidades,
+            "Cajas": cajas,
+            "Tamaño caja": tamCaja,
+            "Total unidades": total
+          });
+        }
       });
       return datos;
     }
 
     function enviarWhatsApp() {
       const responsable = document.getElementById("responsable").value || "No indicado";
-      const fecha = document.getElementById("fecha").value || new Date().toLocaleDateString("es-CL");
+      const fecha = obtenerFechaActual();
       const datos = obtenerDatos();
 
-      let mensaje = `Inventario Lotus Flower\nFecha: ${fecha}\nResponsable: ${responsable}\n\n`;
+      let mensaje = Inventario Lotus Flower\nFecha: ${fecha}\nResponsable: ${responsable}\n\n;
 
       datos.forEach(d => {
-        if (parseInt(d["Total unidades"]) > 0) {
-          mensaje += `• ${d.Producto}: ${d["Total unidades"]}\n`;
+        mensaje += `• [${d.Zona}] ${d.Producto}: `;
+        if (d["Unidades sueltas"] > 0) mensaje += ${d["Unidades sueltas"]} unidades;
+        if (d["Cajas"] > 0) {
+          mensaje += (d["Unidades sueltas"] > 0 ? " + " : "");
+          mensaje += ${d["Cajas"]} cajas de ${d["Tamaño caja"]};
         }
+        mensaje += ` = ${d["Total unidades"]} total\n`;
       });
 
       const numero = "56920449772";
-      const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+      const url = https://wa.me/${numero}?text=${encodeURIComponent(mensaje)};
       window.open(url, "_blank");
     }
 
     function generarExcel() {
       const responsable = document.getElementById("responsable").value || "No indicado";
-      const fecha = document.getElementById("fecha").value || new Date().toLocaleDateString("es-CL");
+      const fecha = obtenerFechaActual();
       const datos = obtenerDatos();
 
-      const hoja = XLSX.utils.json_to_sheet([]);
-      XLSX.utils.sheet_add_aoa(hoja, [["Inventario Lotus Flower"]], { origin: "A1" });
-      XLSX.utils.sheet_add_aoa(hoja, [[`Fecha: ${fecha}`]], { origin: "A2" });
-      XLSX.utils.sheet_add_aoa(hoja, [[`Responsable: ${responsable}`]], { origin: "A3" });
-      XLSX.utils.sheet_add_json(hoja, datos, { origin: "A5", skipHeader: false });
+      const cabecera = [
+        ["Inventario Lotus Flower"],
+        [Fecha: ${fecha}],
+        [Responsable: ${responsable}],
+        [],
+        ["Zona", "Producto", "Unidades sueltas", "Cajas", "Tamaño caja", "Total unidades"]
+      ];
 
+      const datosExcel = cabecera.concat(datos.map(d => [
+        d.Zona,
+        d.Producto,
+        d["Unidades sueltas"],
+        d["Cajas"],
+        d["Tamaño caja"],
+        d["Total unidades"]
+      ]));
+
+      const hoja = XLSX.utils.aoa_to_sheet(datosExcel);
       const libro = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(libro, hoja, "Inventario");
 
-      const nombreArchivo = `Inventario_LotusFlower_${fecha}_${responsable.replace(/\s+/g, "_")}.xlsx`;
+      const nombreArchivo = inventario_LotusFlower_${fecha}_${responsable.replace(/\s+/g, "_")}.xlsx;
       XLSX.writeFile(libro, nombreArchivo);
     }
 
-    window.onload = function () {
-      Object.entries(zonas).forEach(([zona, productos]) => crearTabla(zona, productos));
-      document.getElementById("fecha").valueAsDate = new Date();
-
-      document.getElementById("formularioInventario").addEventListener("input", actualizarTotales);
-    };
+    window.onload = crearTablasPorZona;
   </script>
 
 </body>
