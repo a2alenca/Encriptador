@@ -18,6 +18,8 @@
       width: 100%;
       border-collapse: collapse;
       background: #fff;
+      overflow-x: auto;
+      display: block;
     }
     th, td {
       border: 1px solid #ddd;
@@ -41,11 +43,9 @@
     }
     input, select {
       width: 100%;
-      padding: 6px;
-      font-size: 16px;
+      padding: 4px;
+      font-size: 14px;
       box-sizing: border-box;
-      min-width: 80px;
-      white-space: normal;
     }
     button {
       padding: 12px;
@@ -69,15 +69,11 @@
       margin-top: 15px;
       border-radius: 8px;
     }
-
-    /* Estilos para móviles */
-    @media screen and (max-width: 600px) {
-      th, td {
-        font-size: 12px;
-        padding: 4px;
-      }
-      input, select {
-        font-size: 14px;
+    @media (max-width: 768px) {
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
       }
     }
   </style>
@@ -125,23 +121,15 @@
       "Pulpa Jugos": ["CHIRIMOYA", "FRAMBUESA", "MANGO", "MARACUYA", "PIÑA"],
       "Abarrotes": ["AZUCAR BLANCA", "AZUCAR ESTEVIA", "AZUCAR FLOR", "AZUCAR SACKET", "CAPSULAS NESPRESSO", "CREMA DE LECHE", "ENDULZANTE LIQUIDO", "LECHE DE COCO", "NESCAFE SACKET", "TE"],
       "Artículos de Aseo": ["BOLSA DE BASURA 70X90", "CAJA DE GUANTES", "CLORO", "ESCOBA", "ESPONJA", "JABON MANO", "LAVALOZA", "LIMPIA PISO", "LIMPIA VIDRIO", "PALA", "PAÑO MICROFIBRA", "TOALLA NOVA", "TRAPEROS"],
-      "Cabernet Sauvignon": ["LAS MULAS 750ML", "MEDALLA REAL 750ML", "SANTA DIGNA 375ML", "SANTA DIGNA 750ML", "SANTA DIGNA BOTELLIN 187ML", "SANTA EMA RSVA 375ML", "VINO TERRAANDINA 750ML"],
-      "Carmenere": ["CARMEN FRIDA KAHLO", "LAS MULAS 750ML", "SANTA DIGNA 375ML", "SANTA DIGNA 750ML", "SANTA DIGNA BOTELLIN 187ML", "SANTA EMA RSVA 375ML"],
-      "Merlot": ["LAS MULAS 750ML", "MEDALLA REAL GRAN RSVA", "SANTA EMA RSVA 750ML", "SANTA DIGNA 750ML"],
-      "Sauvignon Blanc": ["LAS MULAS 750ML", "SANTA DIGNA 375ML", "SANTA DIGNA 750ML", "SANTA DIGNA BOTELLIN 187ML", "SANTA EMA RSVA 375ML"],
-      "Chardonnay": ["LAS MULAS 750ML", "SANTA DIGNA 750ML", "SANTA EMA RSVA 750ML"],
-      "Espumantes": ["ESPUMANTE PARA TRAGOS", "VALDIVIESO BRUT", "VALDIVIESO SEMI BRUT"],
-      "Bajativos": ["AMARETTO MITJANS 750ML", "BITTER ARAUCANO 900ML", "FERNET MITJANS 750ML", "MANZANILLA MITJANS 750ML", "MENTA DUVAL 1LT"],
-      "Bajativos Casa": ["AMARETTO 645ML", "CHERRY 645ML", "FERNET 645ML", "MANZANILLA 645ML", "MENTA 645ML", "MENTA DUVAL 1LT"],
-      "Destilados": ["APEROL 750ML", "CACAO MITJNS 750ML", "CACHAZA 51 965ML", "CAMPARI 750ML", "COÑAC TRES PALOS 1LTS", "CURAZAO BLUE 750ML", "GIN BEEFEATER 750ML", "GIN BOMBAY 750ML", "GIN TANQUERY 700ML", "JAGERMEISTER 700ML", "MARTINI VERMONT EXTRA DRY", "MARTINI VERMONT ROSSO", "MARTINI VERMOUTH BLANCO", "PISCO ALTO DEL CARMEN 35°", "PISCO ALTO DEL CARMEN 40°", "PISCO CAPEL 35° 1LT", "PISCO MISTRAL NOBEL AÑEJADO 40", "PISCO TABERNERO 2LTS", "RAMAZZOTTI 700ML", "RON BACARDI", "RON MALIBU 750ML", "RON VARADERO 750ML", "TEQUILA OLMECA 700ML", "TEQUILA SOMBRERO NEGRO 750ML", "TRIPLE SEC 750ML", "VINO AÑEJO CENTENARIO 1LTS", "VODKA ABSOLUT 750ML", "VODKA ERISTOFF 750ML", "VODKA STOLICHNAYA 750ML", "WHISKY CHIVAS 12 AÑOS", "WHISKY GLENFIDDICH 12 AÑOS", "WHISKY JACK DANIELS", "WHISKY JACK DANIELS HONEY", "WHISKY JOHNNIE WALKER NEGRO", "WHISKY JOHNNIE WALKER ROJO", "WHISKY TULLAMORE 750ML"]
+      "Cabernet Sauvignon": ["LAS MULAS 750ML", "MEDALLA REAL 750ML", "SANTA DIGNA 375ML", "SANTA DIGNA 750ML", "SANTA DIGNA BOTELLIN 187ML", "SANTA EMA RSVA 375ML", "VINO TERRAANDINA 750ML"]
     };
 
     const tiposCaja = [1, 4, 6, 8, 12, 14, 15, 18, 24];
-    let productos = [];
-    let index = 0;
+    const productos = [];
 
     window.onload = () => {
       const tbody = document.getElementById("tablaBody");
+      let index = 0;
       const fechaActual = new Date().toISOString().split('T')[0];
       document.getElementById("fecha").value = fechaActual;
 
@@ -175,7 +163,7 @@
       const tipoCaja = parseInt(document.getElementById(`tipoCaja-${i}`).value) || 1;
       const sueltas = parseInt(document.getElementById(`sueltas-${i}`).value) || 0;
       const total = cajas * tipoCaja + sueltas;
-      document.getElementById(`total-${i}`).innerText = total > 0 ? total : "";
+      document.getElementById(`total-${i}`).innerText = total > 0 ? `x${total}` : "";
     }
 
     function generarResumen() {
@@ -204,7 +192,7 @@
             resumen += `\n🗂️ ${zona}:\n`;
             zonaAnterior = zona;
           }
-          resumen += `  - ${nombre}: ${cajas} cajas (x${tipoCaja}), ${sueltas} sueltas, Total: ${total}\n`;
+          resumen += `  - ${nombre}: x${total}\n`;
         }
       });
 
@@ -230,7 +218,7 @@
         const sueltas = parseInt(document.getElementById(`sueltas-${i}`).value) || 0;
         const total = cajas * tipoCaja + sueltas;
         if (total > 0) {
-          datos.push([nombre, cajas, tipoCaja, sueltas, total]);
+          datos.push([nombre, cajas, tipoCaja, sueltas, `x${total}`]);
         }
       });
 
